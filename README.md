@@ -1,4 +1,4 @@
-#Fountain Simulator
+# Fountain Simulator
 
 *Reality:*
 ![Reality](doc/reality.png)
