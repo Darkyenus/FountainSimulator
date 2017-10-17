@@ -10,11 +10,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
 import com.badlogic.gdx.scenes.scene2d.utils.DragListener
 import com.badlogic.gdx.utils.Align
+import com.darkyen.FountainData
 
 /**
  *
  */
-class TimelineWidget(skin:Skin) : Widget() {
+class TimelineWidget(skin:Skin, private val data: FountainData) : Widget() {
 
     private val white = skin.getRegion("white")
     private val font = skin.getFont("font-ui-small").newFontCache().apply {
@@ -131,6 +132,10 @@ class TimelineWidget(skin:Skin) : Widget() {
                 updateDrag(x)
             }
         })
+
+        data.listen {
+            totalTime = data.cycleTime
+        }
     }
 
     override fun act(delta: Float) {

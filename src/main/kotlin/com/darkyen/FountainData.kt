@@ -5,26 +5,123 @@ import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData
+import com.badlogic.gdx.utils.ObjectIntMap
 
 /**
  *
  */
 class FountainData {
 
-    var defaultData = true
+    var message = ""
         private set
+
+    var messageTimeoutIn = Float.POSITIVE_INFINITY
 
     val files = Objects<FileHandle>(true, 16)
     val textures = Objects<Texture>(true, 16)
 
-    fun add(file: FileHandle) {
-        defaultData = false
-        val alreadyAt = files.indexOf(file, false)
-        files.add(file)
-        if (alreadyAt >= 0) {
-            textures.add(textures[alreadyAt])
+    /**
+     * Synchronized access!
+     *
+     * Stores last 32 bits of file handle last modified time
+     */
+    private val reloaderTimeCache = ObjectIntMap<FileHandle>()
+
+    private val listeners = Objects<Runnable>()
+
+    init {
+        listen(false) {
+            if (messageTimeoutIn == Float.POSITIVE_INFINITY) {
+                messageTimeoutIn = 1f
+            }
+        }
+
+        if (!ARGS.containsKey("-no-reload")) {
+            val reloader = Thread({
+                println("Live-reloading initialized")
+                while (true) {
+                    try {
+                        synchronized(reloaderTimeCache) {
+                            for (entry in reloaderTimeCache) {
+                                val file = entry.key
+                                val timestamp = entry.value
+
+                                if (file.exists()) {
+                                    val newTimestamp = file.file().lastModified().toInt()
+
+                                    if (timestamp != newTimestamp) {
+                                        reloaderTimeCache.put(file, newTimestamp)
+                                        println("Reloading "+file.name())
+                                        Gdx.app.postRunnable {
+                                            reload(file)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Thread.sleep(1000)
+                    } catch (e:Exception) {
+                        System.err.println("Reloader error")
+                        e.printStackTrace(System.err)
+                    }
+                }
+            }, "Image reloader")
+
+            reloader.isDaemon = true
+            reloader.start()
+        }
+    }
+
+    private fun reload(file: FileHandle) {
+        val newTexture = createTexture(file)
+        if (newTexture == null) {
+            message = "Image failed to reload"
+            messageTimeoutIn = 5f
+            return
+        }
+
+        var reloaded = 0
+        for (i in 0 until textures.size) {
+            if (files[i] == file) {
+                textures[i].dispose()
+                textures[i] = newTexture
+                reloaded += 1
+            }
+        }
+
+        if (reloaded != 0) {
+            changed()
+
+            message = file.name()+" reloaded"
+            messageTimeoutIn = 1f
         } else {
-            textures.add(createTexture(file))
+            newTexture.dispose()
+        }
+    }
+
+    fun add(file: FileHandle) {
+        val alreadyAt = files.indexOf(file, false)
+        if (alreadyAt >= 0) {
+            files.add(file)
+            textures.add(textures[alreadyAt])
+
+            changed()
+        } else {
+            val texture = createTexture(file)
+            if (texture == null) {
+                message = "Image failed to load"
+                messageTimeoutIn = 5f
+            } else {
+                files.add(file)
+                textures.add(texture)
+
+                synchronized(reloaderTimeCache) {
+                    reloaderTimeCache.put(file, file.file().lastModified().toInt())
+                }
+
+                changed()
+            }
         }
     }
 
@@ -38,12 +135,17 @@ class FountainData {
     }
 
     fun remove(index:Int) {
-        defaultData = false
-        files.removeIndex(index)
+        val file = files.removeIndex(index)
         val removedTexture = textures.removeIndex(index)
         if (!textures.contains(removedTexture, true)) {
             removedTexture.dispose()
+
+            synchronized(reloaderTimeCache) {
+                reloaderTimeCache.remove(file, 0)
+            }
         }
+
+        changed()
     }
 
     fun count():Int = textures.size
@@ -63,7 +165,9 @@ class FountainData {
     init {
         add(Gdx.files.internal("fountain-default-image.png"))
         add(Gdx.files.internal("fountain-default-transition.png"))
-        defaultData = true
+
+        message = "Drag your pattern image here"
+        messageTimeoutIn = Float.POSITIVE_INFINITY
     }
 
     private fun sanitizePixmap(pixmap: Pixmap, maxWidth:Int = 1024):Pixmap {
@@ -100,14 +204,14 @@ class FountainData {
             }
         }
 
-        val aR = (and ushr 24) and 0xFF
-        val aG = (and ushr 16) and 0xFF
-        val aB = (and ushr 8) and 0xFF
+        //val aR = (and ushr 24) and 0xFF
+        //val aG = (and ushr 16) and 0xFF
+        //val aB = (and ushr 8) and 0xFF
         val aA = (and ushr 0) and 0xFF
 
-        val oR = (or ushr 24) and 0xFF
-        val oG = (or ushr 16) and 0xFF
-        val oB = (or ushr 8) and 0xFF
+        //val oR = (or ushr 24) and 0xFF
+        //val oG = (or ushr 16) and 0xFF
+        //val oB = (or ushr 8) and 0xFF
         val oA = (or ushr 0) and 0xFF
 
         val result = Pixmap(width, height, Pixmap.Format.RGB888)
@@ -134,30 +238,36 @@ class FountainData {
         return result
     }
 
-    private fun createTexture(file: FileHandle):Texture {
-        var pixmap:Pixmap? = null
+    private fun createTexture(file: FileHandle):Texture? {
+        try {
+            var pixmap:Pixmap? = null
 
-        if (file.extension().equals("bmp", ignoreCase = true)) {
-            // we will have to load it ourselves, maybe
-            try {
-                val bmp = BMPLoader.load1bppBMP(file.readBytes())
-                if (bmp != null) {
-                    pixmap = bmp
+            if (file.extension().equals("bmp", ignoreCase = true)) {
+                // we will have to load it ourselves, maybe
+                try {
+                    val bmp = BMPLoader.load1bppBMP(file.readBytes())
+                    if (bmp != null) {
+                        pixmap = bmp
+                    }
+                } catch (b:BMPLoader.BMPLoaderException) {
+                    System.err.println("Failed to load BMP: "+b)
                 }
-            } catch (b:BMPLoader.BMPLoaderException) {
-                System.err.println("Failed to load BMP: "+b)
             }
+
+            if (pixmap == null) {
+                pixmap = Pixmap(file)
+            }
+
+            pixmap = sanitizePixmap(pixmap)
+
+            val texture = Texture(PixmapTextureData(pixmap, null, false, true))
+            texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
+            return texture
+        } catch (e:Exception) {
+            System.err.println("Failed to load texture from "+file.file().absolutePath)
+            e.printStackTrace(System.err)
+            return null
         }
-
-        if (pixmap == null) {
-            pixmap = Pixmap(file)
-        }
-
-        pixmap = sanitizePixmap(pixmap)
-
-        val texture = Texture(PixmapTextureData(pixmap, null, false, true))
-        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
-        return texture
     }
 
     companion object {
@@ -174,5 +284,23 @@ class FountainData {
 
         // Data measured experimentally, slightly more accurate version of FOUNTAIN_FALL_TIME / FOUNTAIN_VERTICAL_DROPLETS
         val FOUNTAIN_TIME_PER_DROPLET = 22.4f / 7056f
+    }
+
+    fun listen(runImmediately:Boolean = true, r:() -> Unit) {
+        synchronized(listeners) {
+            listeners.add(Runnable { r() })
+        }
+
+        if (runImmediately) {
+            r()
+        }
+    }
+
+    private fun changed() {
+        synchronized(listeners) {
+            for (listener in listeners) {
+                listener.run()
+            }
+        }
     }
 }

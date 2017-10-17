@@ -64,42 +64,6 @@ inline fun Bytes.forEachIndexed(action:(Byte, Index) -> Unit) {
     }
 }
 
-fun normalizeAngleDeg(degrees:Float):Float {
-    val result = (degrees % 360f)
-    return if (result < 0f) {
-        result + 360f
-    } else {
-        result
-    }
-}
-
-fun normalizeAngleRad(radians:Float):Float {
-    val result = (radians % MathUtils.PI2)
-    return if (result < 0f) {
-        result + MathUtils.PI2
-    } else {
-        result
-    }
-}
-
-fun normalizeAngleOffsetDeg(degrees:Float):Float {
-    val result = (degrees % 360)
-    return when {
-        result < -180 -> result + 360
-        result > 180 -> result - 180
-        else -> result
-    }
-}
-
-fun normalizeAngleOffsetRad(radians:Float):Float {
-    val result = (radians % MathUtils.PI2)
-    return when {
-        result < -MathUtils.PI -> result + MathUtils.PI2
-        result > MathUtils.PI -> result - MathUtils.PI2
-        else -> result
-    }
-}
-
 /** Returns a re-mapped float value from inRange to outRange.  */
 fun map(value: Float, inRangeStart: Float, inRangeEnd: Float, outRangeStart: Float, outRangeEnd: Float): Float {
     return outRangeStart + (outRangeEnd - outRangeStart) * ((value - inRangeStart) / (inRangeEnd - inRangeStart))

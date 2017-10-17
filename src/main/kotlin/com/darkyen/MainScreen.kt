@@ -3,7 +3,6 @@ package com.darkyen
 import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Input
 import com.badlogic.gdx.ScreenAdapter
-import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Graphics
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3WindowListener
 import com.badlogic.gdx.graphics.GL20
@@ -11,7 +10,9 @@ import com.badlogic.gdx.scenes.scene2d.Actor
 import com.badlogic.gdx.scenes.scene2d.InputEvent
 import com.badlogic.gdx.scenes.scene2d.InputListener
 import com.badlogic.gdx.scenes.scene2d.Stage
-import com.badlogic.gdx.scenes.scene2d.ui.*
+import com.badlogic.gdx.scenes.scene2d.ui.Button
+import com.badlogic.gdx.scenes.scene2d.ui.Table
+import com.badlogic.gdx.scenes.scene2d.ui.Value
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener
 import com.badlogic.gdx.utils.viewport.ScreenViewport
 import com.darkyen.widgets.DataLineWidget
@@ -36,8 +37,9 @@ class MainScreen : ScreenAdapter() {
                 skin.newDrawable("pause-button", 0.8f, 0.8f, 0.8f, 1f),
                 skin.getDrawable("play-button"))
 
-        val timeline = TimelineWidget(skin)
-        val fountain = FountainWidget(timeline, skin)
+        val data = FountainData()
+        val timeline = TimelineWidget(skin, data)
+        val fountain = FountainWidget(data, timeline, skin)
 
         pauseButton.addListener(object :ChangeListener() {
             override fun changed(event: ChangeEvent?, actor: Actor?) {
@@ -59,7 +61,7 @@ class MainScreen : ScreenAdapter() {
         root.add(fountain).grow().colspan(2).row()
 
         root.add()
-        val dataLineWidget = DataLineWidget(skin, fountain)
+        val dataLineWidget = DataLineWidget(skin, data)
         root.add(dataLineWidget).height(20f).fill().expandX().pad(5f).padBottom(2f).row()
 
         root.add(pauseButton).fill().size(32f).pad(5f).padTop(Value.zero)

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.TextureRegion
+import com.badlogic.gdx.math.Interpolation
 import com.badlogic.gdx.scenes.scene2d.ui.Skin
 import com.badlogic.gdx.scenes.scene2d.ui.Widget
 import com.badlogic.gdx.utils.Align
@@ -15,22 +16,21 @@ import com.darkyen.util.AutoReloadShaderProgram
 /**
  *
  */
-class FountainWidget(val timeline: TimelineWidget, skin: Skin) : Widget() {
+class FountainWidget(val data: FountainData, private val timeline: TimelineWidget, skin: Skin) : Widget() {
 
     private val font = skin.getFont("font-ui-big").newFontCache().apply {
         setColor(0.97f, 0.97f, 0.97f, 1f)
     }
     private val white = skin.getRegion("white")
 
-
-    val data = FountainData()
-
     init {
-        refreshTimeline()
+        data.listen {
+            refreshTimeline()
+        }
     }
 
     fun refreshTimeline() {
-        timeline.totalTime = data.cycleTime
+
     }
 
     private fun renderFountainBackground(batch: Batch, x:Float, y:Float, w:Float, h:Float) {
@@ -92,12 +92,18 @@ class FountainWidget(val timeline: TimelineWidget, skin: Skin) : Widget() {
         batch.setBlendFunction(oldBlendSrcFunc, oldBlendDstFunc)
     }
 
-    private fun renderDefaultDataInfo(batch: Batch) {
-        batch.setColor(0.5f, 0.5f, 0.5f, 0.4f)
+    private fun renderDefaultDataInfo(batch: Batch, message:String, alpha:Float) {
+        batch.setColor(0.5f, 0.5f, 0.5f, 0.4f * alpha)
         batch.draw(white, x, y, width, height)
 
-        font.setText("Drag your pattern image here", x, y + height/2f + font.font.capHeight/2f, width, Align.center, true)
-        font.draw(batch)
+        font.setText(message, x, y + height/2f + font.font.capHeight/2f, width, Align.center, true)
+        font.draw(batch, alpha)
+    }
+
+    override fun act(delta: Float) {
+        super.act(delta)
+
+        data.messageTimeoutIn -= delta
     }
 
     override fun draw(batch: Batch, parentAlpha: Float) {
@@ -120,8 +126,11 @@ class FountainWidget(val timeline: TimelineWidget, skin: Skin) : Widget() {
         renderFountainBackground(batch, x, y, w, h)
         renderFountain(batch, timeline.now, x, y, w, h)
 
-        if (data.defaultData) {
-            renderDefaultDataInfo(batch)
+
+        if (data.message.isNotBlank() && data.messageTimeoutIn > 0f) {
+            val alpha = Interpolation.fade.apply(Math.min(data.messageTimeoutIn, 1f))
+
+            renderDefaultDataInfo(batch, data.message, alpha)
         }
     }
 

@@ -12,6 +12,7 @@
 - Focus on any part of the sequence, pause it, A-B repeat it
 - Accurate image distortion
 - Semi-accurate rendering
+- Image auto reload
 
 ## How to use
 - Make sure that you have Java 8 installed
@@ -25,3 +26,7 @@
 - Play and pause the animation by clicking the button or by pressing the spacebar
 - Scrub on the timeline by dragging with left mouse button
 - Create A-B repeat section by dragging with right mouse button on the timeline
+- Loaded images that change on disk will reload automatically when changed
+	- Supply `-no-reload` argument to disable this
+	- Change detection is implemented through last modified timestamp
+

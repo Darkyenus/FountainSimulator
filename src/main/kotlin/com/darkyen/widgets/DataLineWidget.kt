@@ -10,7 +10,7 @@ import com.darkyen.Objects
 /**
  *
  */
-class DataLineWidget(private val skin: Skin, private val fountainWidget: FountainWidget) : WidgetGroup() {
+class DataLineWidget(private val skin: Skin, private val data: FountainData) : WidgetGroup() {
 
     private val moveLeftStyle = Button.ButtonStyle(
             skin.getDrawable("move-left"),
@@ -30,9 +30,6 @@ class DataLineWidget(private val skin: Skin, private val fountainWidget: Fountai
             skin.newDrawable("remove", 0.8f, 0.8f, 0.8f, 1f)
     )
 
-    private val data:FountainData
-        get() = fountainWidget.data
-
     fun refreshChildren() {
         while (children.size < data.count()) {
             addActor(DataWidget(0, 0f))
@@ -50,12 +47,13 @@ class DataLineWidget(private val skin: Skin, private val fountainWidget: Fountai
             actor.weight = data.getHeight(index) / totalTime
         }
 
-        fountainWidget.refreshTimeline()
         invalidate()
     }
 
     init {
-        refreshChildren()
+        data.listen {
+            refreshChildren()
+        }
     }
 
     override fun layout() {
