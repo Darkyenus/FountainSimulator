@@ -38,7 +38,7 @@ class FountainData {
 
         if (!ARGS.containsKey("-no-reload")) {
             val reloader = Thread({
-                println("Live-reloading initialized")
+                Gdx.app.log(LOG, "Live-reloading initialized")
                 while (true) {
                     try {
                         synchronized(reloaderTimeCache) {
@@ -51,7 +51,7 @@ class FountainData {
 
                                     if (timestamp != newTimestamp) {
                                         reloaderTimeCache.put(file, newTimestamp)
-                                        println("Reloading "+file.name())
+                                        Gdx.app.log(LOG, "Reloading "+file.name())
                                         Gdx.app.postRunnable {
                                             reload(file)
                                         }
@@ -62,8 +62,7 @@ class FountainData {
 
                         Thread.sleep(1000)
                     } catch (e:Exception) {
-                        System.err.println("Reloader error")
-                        e.printStackTrace(System.err)
+                        Gdx.app.error(LOG, "Reloader error", e)
                     }
                 }
             }, "Image reloader")
@@ -177,7 +176,7 @@ class FountainData {
         p = if (pixmap.width > maxWidth) {
             val scaledPixmap = Pixmap(maxWidth, Math.round(pixmap.height.toFloat() * maxWidth.toFloat() / pixmap.width.toFloat()), pixmap.format)
 
-            println("Resizing from " + pixmap.width + "x" + pixmap.height + " to " + scaledPixmap.width + "x" + scaledPixmap.height)
+            Gdx.app.debug(LOG, "Resizing from ${toString(pixmap)} to ${toString(scaledPixmap)}")
 
             Pixmap.setBlending(Pixmap.Blending.None)
             Pixmap.setFilter(Pixmap.Filter.NearestNeighbour)
@@ -218,6 +217,7 @@ class FountainData {
 
         if (aA != oA) {
             // Data is in alpha
+            Gdx.app.debug(LOG, "${toString(p)} has data in alpha")
             for (y in 0 until height) {
                 for (x in 0 until width) {
                     val a = p.getPixel(x, y) and 0xFF
@@ -226,6 +226,7 @@ class FountainData {
             }
         } else {
             // Data is in rgb
+            Gdx.app.debug(LOG, "${toString(p)} has data in RGB")
             for (y in 0 until height) {
                 for (x in 0 until width) {
                     val rgba = p.getPixel(x, y) or (0xFF)
@@ -234,43 +235,52 @@ class FountainData {
             }
         }
 
+        Gdx.app.debug(LOG, "will dispose ${toString(p)}")
         p.dispose()
+        Gdx.app.debug(LOG, "${toString(pixmap)} sanitized to ${toString(result)}")
         return result
     }
 
     private fun createTexture(file: FileHandle):Texture? {
+        Gdx.app.debug(LOG, "Creating texture for "+file)
         try {
             var pixmap:Pixmap? = null
 
             if (file.extension().equals("bmp", ignoreCase = true)) {
                 // we will have to load it ourselves, maybe
                 try {
+                    Gdx.app.debug(LOG, "trying to load $file as bmp")
                     val bmp = BMPLoader.load1bppBMP(file.readBytes())
                     if (bmp != null) {
                         pixmap = bmp
                     }
                 } catch (b:BMPLoader.BMPLoaderException) {
-                    System.err.println("Failed to load BMP: "+b)
+                    Gdx.app.error(LOG, "Failed to load BMP", b)
                 }
             }
 
             if (pixmap == null) {
+                Gdx.app.debug(LOG, "creating default pixmap for $file")
                 pixmap = Pixmap(file)
             }
 
+            Gdx.app.debug(LOG, "sanitizing ${toString(pixmap)}")
             pixmap = sanitizePixmap(pixmap)
 
+            Gdx.app.debug(LOG, "creating texture from ${toString(pixmap)}")
             val texture = Texture(PixmapTextureData(pixmap, null, false, true))
             texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
+            Gdx.app.debug(LOG, "texture ${toString(texture)} created")
             return texture
         } catch (e:Exception) {
-            System.err.println("Failed to load texture from "+file.file().absolutePath)
-            e.printStackTrace(System.err)
+            Gdx.app.error(LOG, "Failed to load texture from "+file, e)
             return null
         }
     }
 
     companion object {
+
+        private val LOG = "FountainData"
 
         val FOUNTAIN_WIDTH = 1024
         val FOUNTAIN_HEIGHT = 280

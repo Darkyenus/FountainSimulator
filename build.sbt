@@ -39,4 +39,4 @@ TaskKey[Unit]("packResources") := {
 
 mainClass in assembly := Some("com.darkyen.MainKt")
 
-assemblyJarName in assembly := "FountainSim-"+version.value
+assemblyJarName in assembly := "FountainSim-"+version.value+".jar"

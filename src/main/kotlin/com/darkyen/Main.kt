@@ -1,6 +1,8 @@
 package com.darkyen
 
+import com.badlogic.gdx.Application.LOG_DEBUG
 import com.badlogic.gdx.Game
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.assets.AssetManager
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver
 import com.badlogic.gdx.backends.lwjgl3.Lwjgl3Application
@@ -30,6 +32,10 @@ object Main : Game() {
         private set
 
     override fun create() {
+        if (ARGS.containsKey("-debug")) {
+            Gdx.app.logLevel = LOG_DEBUG
+        }
+
         batch = SpriteBatch()
         assetManager.load("UISkin.json", Skin::class.java)
         assetManager.finishLoading()
@@ -37,7 +43,7 @@ object Main : Game() {
         skin = assetManager.get<Skin>("UISkin.json")
         font = skin.getFont("font-ui-small")
 
-        if (ARGS.containsKey("development")) {
+        if (ARGS.containsKey("-gl-strict")) {
             GLProfiler.enable()
             GLProfiler.listener = GLErrorListener.THROWING_LISTENER
         }

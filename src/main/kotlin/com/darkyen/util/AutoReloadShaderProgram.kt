@@ -37,7 +37,7 @@ class AutoReloadShaderProgram(val vertexShader:FileHandle, val fragmentShader:Fi
                         reload()
                     }
                 }
-                Thread.sleep(500)
+                Thread.sleep(2000)
             }
 
         }, "AutoReloadShaderProgram").apply {

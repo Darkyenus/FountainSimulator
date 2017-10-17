@@ -23,16 +23,6 @@ class FountainWidget(val data: FountainData, private val timeline: TimelineWidge
     }
     private val white = skin.getRegion("white")
 
-    init {
-        data.listen {
-            refreshTimeline()
-        }
-    }
-
-    fun refreshTimeline() {
-
-    }
-
     private fun renderFountainBackground(batch: Batch, x:Float, y:Float, w:Float, h:Float) {
         val bg = Background.NIGHT
         val bgTexture = bg.texture

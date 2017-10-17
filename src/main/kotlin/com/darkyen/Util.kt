@@ -1,9 +1,12 @@
+@file:Suppress("unused")
+
 package com.darkyen
 
 /**
  *
  */
-import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.graphics.Pixmap
+import com.badlogic.gdx.graphics.Texture
 import com.badlogic.gdx.utils.ByteArray as Bytes
 import com.badlogic.gdx.utils.IntArray as Ints
 
@@ -67,4 +70,12 @@ inline fun Bytes.forEachIndexed(action:(Byte, Index) -> Unit) {
 /** Returns a re-mapped float value from inRange to outRange.  */
 fun map(value: Float, inRangeStart: Float, inRangeEnd: Float, outRangeStart: Float, outRangeEnd: Float): Float {
     return outRangeStart + (outRangeEnd - outRangeStart) * ((value - inRangeStart) / (inRangeEnd - inRangeStart))
+}
+
+fun toString(p:Pixmap):CharSequence {
+    return "Pixmap "+p.width+" x "+p.height+" in "+p.format
+}
+
+fun toString(t: Texture):CharSequence {
+    return "Texture "+ t.width+" x "+ t.height+" with "+ t.textureData?.type+" data"
 }
