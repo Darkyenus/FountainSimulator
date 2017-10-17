@@ -1,7 +1,7 @@
 import com.darkyen.resourcepacker.{PackingOperation, PackingOperationKt}
 
 name := "Fountain Sim"
-version := "1.0"
+version := "1.1"
 
 kotlinLib("stdlib")
 
@@ -38,3 +38,5 @@ TaskKey[Unit]("packResources") := {
 }
 
 mainClass in assembly := Some("com.darkyen.MainKt")
+
+assemblyJarName in assembly := "FountainSim-"+version.value
