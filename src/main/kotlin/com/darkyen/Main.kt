@@ -95,7 +95,7 @@ private fun restartOnFirstThread(args: Array<String>) {
     command.add("-XstartOnFirstThread")
     command.add("-cp")
     command.add(ManagementFactory.getRuntimeMXBean().classPath)
-    command.add("com.darkyen.pb009.MainKt")
+    command.add("com.darkyen.MainKt")
     command.addAll(args)
     command.add("firstThreadRestarted")
 
