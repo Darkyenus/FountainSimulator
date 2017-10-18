@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.files.FileHandle
 import com.badlogic.gdx.graphics.Pixmap
 import com.badlogic.gdx.graphics.Texture
+import com.badlogic.gdx.graphics.TextureData
 import com.badlogic.gdx.graphics.glutils.PixmapTextureData
 import com.badlogic.gdx.utils.ObjectIntMap
 
@@ -18,7 +19,7 @@ class FountainData {
     var messageTimeoutIn = Float.POSITIVE_INFINITY
 
     val files = Objects<FileHandle>(true, 16)
-    val textures = Objects<Texture>(true, 16)
+    val textures = Objects<TextureWithOriginalSize>(true, 16)
 
     /**
      * Synchronized access!
@@ -241,7 +242,7 @@ class FountainData {
         return result
     }
 
-    private fun createTexture(file: FileHandle):Texture? {
+    private fun createTexture(file: FileHandle):TextureWithOriginalSize? {
         Gdx.app.debug(LOG, "Creating texture for "+file)
         try {
             var pixmap:Pixmap? = null
@@ -264,11 +265,16 @@ class FountainData {
                 pixmap = Pixmap(file)
             }
 
+            val originalWidth = pixmap.width
+            val originalHeight = pixmap.height
+
             Gdx.app.debug(LOG, "sanitizing ${toString(pixmap)}")
             pixmap = sanitizePixmap(pixmap)
 
             Gdx.app.debug(LOG, "creating texture from ${toString(pixmap)}")
-            val texture = Texture(PixmapTextureData(pixmap, null, false, true))
+            val texture = TextureWithOriginalSize(
+                    PixmapTextureData(pixmap, null, false, true),
+                    originalWidth, originalHeight)
             texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat)
             Gdx.app.debug(LOG, "texture ${toString(texture)} created")
             return texture
@@ -283,14 +289,15 @@ class FountainData {
         private val LOG = "FountainData"
 
         val FOUNTAIN_WIDTH = 1024
-        val FOUNTAIN_HEIGHT = 280
+        val FOUNTAIN_HEIGHT = 338
 
-        //val FOUNTAIN_HEIGHT_METERS = 3.4f
+        val FOUNTAIN_RESOLUTION_WIDTH = 1024
+        val FOUNTAIN_RESOLUTION_MAX_HEIGHT = 65536
 
-        //val FOUNTAIN_VERTICAL_DROPLETS = 244.4f
+        private val FOUNTAIN_HEIGHT_METERS = 3.4f
 
         /** Seconds */
-        val FOUNTAIN_FALL_TIME = 0.83333f
+        val FOUNTAIN_FALL_TIME = Math.sqrt(FOUNTAIN_HEIGHT_METERS/ (0.5 * 9.81)).toFloat()
 
         // Data measured experimentally, slightly more accurate version of FOUNTAIN_FALL_TIME / FOUNTAIN_VERTICAL_DROPLETS
         val FOUNTAIN_TIME_PER_DROPLET = 22.4f / 7056f
@@ -313,4 +320,6 @@ class FountainData {
             }
         }
     }
+
+    class TextureWithOriginalSize(data:TextureData, val originalWidth:Int, val originalHeight:Int) : Texture(data)
 }
