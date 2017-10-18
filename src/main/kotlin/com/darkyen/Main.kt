@@ -88,7 +88,7 @@ fun main(args: Array<String>) {
     for (arg in args) {
         val splitIndex = arg.indexOf(':')
         if (splitIndex == -1) {
-            ARGS.put(arg, null)
+            ARGS.put(arg, "")
         } else {
             ARGS.put(arg.substring(0, splitIndex), arg.substring(splitIndex + 1))
         }

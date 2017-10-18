@@ -29,4 +29,16 @@
 - Loaded images that change on disk will reload automatically when changed
 	- Supply `-no-reload` argument to disable this
 	- Change detection is implemented through last modified timestamp
+- Advanced
+	- Images on the fountain have their height halved before being displayed.
+	This is done automatically by the simulator, but sometimes the image is already
+	halved so this manipulation is not desirable. To suppress this,
+	supply launch argument `-scale`. If you want to experiment with other scales,
+	specify them in the argument like so: `-scale:<scale>`, for example `-scale:0.25`.
+	- To enable debug logging, pass `-debug` flag.
+	- To enable OpenGL error checking, pass `-gl-debug` flag.
 
+## Credits
+See [LICENSE](LICENSE) for author and license information.
+
+Special thanks to *Lukáš Plachý* for kindly supplying image resources and valuable advice.

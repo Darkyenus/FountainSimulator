@@ -21,6 +21,25 @@ class FountainData {
     val files = Objects<FileHandle>(true, 16)
     val textures = Objects<TextureWithOriginalSize>(true, 16)
 
+    /** Factor by which the height of an image is scaled before it gets printed out with HW speed */
+    private val heightScale:Float
+    init {
+        val scaleStr = ARGS.get("-scale")
+        heightScale = if (scaleStr == null) {
+            Gdx.app.log(LOG, "Using artist display scale (0.50)")
+            0.5f
+        } else {
+            val scale = scaleStr.toFloatOrNull()
+            if (scale == null) {
+                Gdx.app.log(LOG, "Using developer display scale (1.00)")
+                1f
+            } else {
+                Gdx.app.log(LOG, "Using custom display scale ($scale)")
+                scale
+            }
+        }
+    }
+
     /**
      * Synchronized access!
      *
@@ -130,6 +149,10 @@ class FountainData {
         return (1024f / texture.width) * texture.height
     }
 
+    fun getTime(index: Int):Float {
+        return getHeight(index) * FOUNTAIN_TIME_PER_DROPLET * heightScale
+    }
+
     fun get(index:Int):Texture {
         return textures[index]
     }
@@ -160,7 +183,7 @@ class FountainData {
         }
 
     val cycleTime:Float
-        get() = totalHeight * FOUNTAIN_TIME_PER_DROPLET
+        get() = totalHeight * FOUNTAIN_TIME_PER_DROPLET * heightScale
 
     init {
         add(Gdx.files.internal("fountain-default-image.png"))
@@ -288,10 +311,14 @@ class FountainData {
 
         private val LOG = "FountainData"
 
+        /** Fountain width in arbitrary units */
         val FOUNTAIN_WIDTH = 1024
+        /** Fountain height in arbitrary units */
         val FOUNTAIN_HEIGHT = 338
 
+        /** Fountain horizontal resolution */
         val FOUNTAIN_RESOLUTION_WIDTH = 1024
+        /** Fountain max pixels of height per image */
         val FOUNTAIN_RESOLUTION_MAX_HEIGHT = 65536
 
         private val FOUNTAIN_HEIGHT_METERS = 4f
@@ -299,8 +326,8 @@ class FountainData {
         /** Seconds */
         val FOUNTAIN_FALL_TIME = Math.sqrt(FOUNTAIN_HEIGHT_METERS/ (0.5 * 9.81)).toFloat()
 
-        // Time it takes to "print" out single pixel, in seconds
-        val FOUNTAIN_TIME_PER_DROPLET = 28.27f / 4350f
+        /** Time it takes to "print" out single pixel, in seconds */
+        private val FOUNTAIN_TIME_PER_DROPLET = 28.27f / 4350f
     }
 
     fun listen(runImmediately:Boolean = true, r:() -> Unit) {

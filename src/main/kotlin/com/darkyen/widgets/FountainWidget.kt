@@ -68,7 +68,7 @@ class FountainWidget(val data: FountainData, private val timeline: TimelineWidge
         val textureHeightLocation = shader.getUniformLocation("textureHeight")
 
         for (i in 0 until data.count()) {
-            val textureHeight = data.getHeight(i) * FountainData.FOUNTAIN_TIME_PER_DROPLET
+            val textureHeight = data.getTime(i)
             shader.setUniformf(textureOffsetLocation, textureOffset)
             shader.setUniformf(textureHeightLocation, textureHeight)
 
