@@ -15,9 +15,11 @@
 - Image auto reload
 
 ## How to use
-- Make sure that you have Java 8 installed
+- Make sure that you have [Java 8](http://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html) installed
 - Download from releases
 - Run by double clicking the downloaded .jar file
+*(If you have Java installed, but double-clicking does not open the simulator, try to run through
+the Windows [.bat](dist/Launch.bat) file which you download to the same directory you keep the `.jar` in.)*
 
 
 - Use mouse to drag image files on the screen to add them to the timeline

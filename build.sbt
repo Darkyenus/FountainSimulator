@@ -1,7 +1,7 @@
 import com.darkyen.resourcepacker.{PackingOperation, PackingOperationKt}
 
 name := "Fountain Sim"
-version := "1.3"
+version := "1.4"
 
 kotlinLib("stdlib")
 

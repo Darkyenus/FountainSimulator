@@ -1,2 +1,2 @@
-java -jar FountainSim-1.2.jar -debug -gl-strict
+java -jar FountainSim-1.4.jar
 PAUSE
