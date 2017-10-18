@@ -10,6 +10,7 @@ import com.badlogic.gdx.backends.lwjgl3.Lwjgl3ApplicationConfiguration
 import com.badlogic.gdx.graphics.g2d.Batch
 import com.badlogic.gdx.graphics.g2d.BitmapFont
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShaderProgram
 import com.badlogic.gdx.graphics.profiling.GLErrorListener
 import com.badlogic.gdx.graphics.profiling.GLProfiler
 import com.badlogic.gdx.physics.box2d.Box2D
@@ -31,6 +32,8 @@ object Main : Game() {
     lateinit var font: BitmapFont
         private set
 
+    private val glDebug = ARGS.containsKey("-gl-debug")
+
     override fun create() {
         if (ARGS.containsKey("-debug")) {
             Gdx.app.logLevel = LOG_DEBUG
@@ -43,12 +46,27 @@ object Main : Game() {
         skin = assetManager.get<Skin>("UISkin.json")
         font = skin.getFont("font-ui-small")
 
-        if (ARGS.containsKey("-gl-strict")) {
+        if (glDebug) {
+            Gdx.app.log("Main", "Enabling error logging")
+            ShaderProgram.pedantic = false
+            GLProfiler.listener = GLErrorListener { error ->
+                GLErrorListener.LOGGING_LISTENER.onError(error)
+                Gdx.app.log("Main", "Error was at", Exception())
+                System.out.flush()
+                System.err.flush()
+            }
             GLProfiler.enable()
-            GLProfiler.listener = GLErrorListener.THROWING_LISTENER
         }
 
         setScreen(MainScreen())
+    }
+
+    override fun render() {
+        if (glDebug) {
+            GLProfiler.enable()
+        }
+
+        super.render()
     }
 }
 

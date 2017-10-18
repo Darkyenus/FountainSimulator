@@ -24,7 +24,7 @@ uniform float acceleration;
 
 
 void main() {
-	float tOffset = sqrt(2.0 * v_texCoords.y / acceleration);
+	float tOffset = sqrt(max(2.0 * v_texCoords.y / acceleration, 0.0));
 	float t = time - tOffset;
 	t -= textureOffset;
 

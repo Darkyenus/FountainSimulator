@@ -130,7 +130,13 @@ class FountainWidget(val data: FountainData, private val timeline: TimelineWidge
         }
 
         val fountainShader by lazy(LazyThreadSafetyMode.NONE) {
-            AutoReloadShaderProgram(Gdx.files.internal("shaders/fountain.vert"), Gdx.files.internal("shaders/fountain.frag"))
+            val local = Gdx.files.local("fountain.frag")
+
+            AutoReloadShaderProgram(Gdx.files.internal("shaders/fountain.vert"),
+                    if (local.exists()) {
+                        Gdx.app.log("FountainWidget", "Using shader from "+local.file().absolutePath)
+                        local
+                    } else Gdx.files.internal("shaders/fountain.frag"))
         }
     }
 
