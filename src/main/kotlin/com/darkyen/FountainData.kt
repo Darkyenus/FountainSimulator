@@ -294,13 +294,13 @@ class FountainData {
         val FOUNTAIN_RESOLUTION_WIDTH = 1024
         val FOUNTAIN_RESOLUTION_MAX_HEIGHT = 65536
 
-        private val FOUNTAIN_HEIGHT_METERS = 3.4f
+        private val FOUNTAIN_HEIGHT_METERS = 4f
 
         /** Seconds */
         val FOUNTAIN_FALL_TIME = Math.sqrt(FOUNTAIN_HEIGHT_METERS/ (0.5 * 9.81)).toFloat()
 
-        // Data measured experimentally, slightly more accurate version of FOUNTAIN_FALL_TIME / FOUNTAIN_VERTICAL_DROPLETS
-        val FOUNTAIN_TIME_PER_DROPLET = 22.4f / 7056f
+        // Time it takes to "print" out single pixel, in seconds
+        val FOUNTAIN_TIME_PER_DROPLET = 28.27f / 4350f
     }
 
     fun listen(runImmediately:Boolean = true, r:() -> Unit) {
